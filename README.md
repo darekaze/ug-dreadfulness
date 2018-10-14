@@ -1,0 +1,3 @@
+# Detonating...
+
+Java, PHP etc. not so fun language that I have written goes to here..
