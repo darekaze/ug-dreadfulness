@@ -381,6 +381,34 @@ function displayErrorMessage($entity) { // [HttpEntity entity]
 
 //-----------Test connection & Mock function-----------//
 
+function testRbsURL() {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'https://demo.bookedscheduler.com/Web/index.php');
+    curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/32.0.1700.107 Chrome/32.0.1700.107 Safari/537.36');
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, "username=admin&password=password");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_COOKIESESSION, 1);
+    curl_setopt($ch, CURLOPT_COOKIEJAR, 'cookie.txt');  // write
+    curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookie.txt');  // read
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // Because some sites redirect and set cookies at the second page, this may be needed
+    $answer = curl_exec($ch);
+    if (curl_error($ch)) {
+        echo "wat\n";
+        echo curl_error($ch);
+    }
+    
+    //another request preserving the session
+    curl_setopt($ch, CURLOPT_URL, 'https://demo.bookedscheduler.com/Web/dashboard.php');
+    curl_setopt($ch, CURLOPT_POST, false);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, "");
+    $answer = curl_exec($ch);
+    if (curl_error($ch)) {
+        echo curl_error($ch);
+    }
+    curl_close($ch); // Terminate
+}
+
 // TODO: make a mock ht
 function getMockHT() {
     $ht = array(
