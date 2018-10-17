@@ -6,13 +6,13 @@
 function replicateTimeTable($configs, $room, $subject) {
     $roomToID = array();
 
-// Get lab room list
+    // Get lab room list
     echo "TASSynchronizer.replicateTimeTable(): Collecting Room Information, sucessful = ";
     // $r = getRemoteRoomList($configs->RBS, $roomToID); // need rbs account
     $r = mockRoomList($roomToID);
     echo $r . "\n";
 
-// Get TAS Info
+    // Get TAS Info
     $staffHT = array();
     $subjectHT = array();
     $teachingRequirementHT = array();
@@ -33,7 +33,7 @@ function replicateTimeTable($configs, $room, $subject) {
     }		
     echo $r . "\n\n";
 
-// Make conditions
+    // Make conditions
     $condition="";
     $delCondition="";
     
@@ -48,7 +48,7 @@ function replicateTimeTable($configs, $room, $subject) {
         $delCondition = "{$delCondition} and tas_subject_code='{$subject}'";
     }
 
-// Get assignment timetable
+    // Get assignment timetable
     echo "Replicating Assignment TimeTable having condition {$condition}";
     echo "\nTASSynchronizer.replicateTimeTable() : Connecting to DB {$configs->TAS->db} by {$configs->TAS->username}\n";
 
@@ -62,7 +62,7 @@ function replicateTimeTable($configs, $room, $subject) {
     $r = oci_execute($stid);
     // $r ? delRepetition($configs->RBS, $delCondition) : null; // Need rbs account
         
-// TAS Synchronizer start replicate time table
+    // TAS Synchronizer start replicate time table
     $count = 0;
     $done = 0;
 
@@ -89,6 +89,7 @@ function replicateTimeTable($configs, $room, $subject) {
             $description = "{$subjectTitle} ({$sNameList})";
             echo "TASSynchronizer.replicateTimeTable(): by {$sNameList}";
 
+            // TODO: Need to modified field name to new rbs
             if ($rep_day != "-1" && isset($roomToID[$venue])) {
                 $synDate = getCurrentDateFormatted();
                 $done++;
@@ -255,34 +256,58 @@ function delRepetition($rbs, $delCondition) {
 }
 
 /**
- * TODO: Need Further test (Try curl)
+ * TODO: Finish it
+ * Use curl (need to store cookie in order to proceed)
  * @throws Exception if operation fail
  */
 function callInsertBookingURL($ht, $rbs) {
-    // curl-less login method
-    $url = $rbs->loginURL;
     $data = array(
-        'email' => $rbs->loginEmail,
-        'password' => $rbs->loginPassword,
-        'captcha' => '',
+        'email' => trim($rbs->loginEmail),
+        'password' => trim($rbs->loginPassword),
         'login' => 'submit',
-        'resume' => '',
         'language' => 'en_us'
     );
-    $options = array(
-        'http' => array(
-            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-            'method'  => 'POST',
-            'content' => http_build_query($data)
-        )
-    );
-    $context = stream_context_create($options);
-    $result = file_get_contents($url, false, $context);
-    if ($result === false) { 
-        throw new Exception("Error occur in login to rbs\n");
-    }
-    echo "Login form get: \n";
-    var_dump($result);
+
+    $ch = curl_init();
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_COOKIEJAR => 'cookie.txt',
+        CURLOPT_URL => $rbs->loginURL,
+        CURLOPT_POST => 1,
+        CURLOPT_POSTFIELDS => http_build_query($data)
+    )); // cookie.txt will be auto generated
+    
+    $store = curl_exec($ch); // do login
+
+    // TODO: set the URL to the desire request
+    $url = $rbs->URL;
+    curl_setopt($ch, CURLOPT_URL, $url);
+
+    $content = curl_exec($ch);
+
+    // should output::
+    var_dump($store); // Dashboard
+    var_dump($content); // reservation page
+
+    curl_close($ch); // Terminate
+    
+    //////////////////////
+    // curl-less (failed)
+    // $url = $rbs->loginURL;
+    // $options = array(
+    //     'http' => array(
+    //         'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+    //         'method'  => 'POST',
+    //         'content' => http_build_query($data)
+    //     )
+    // );
+    // $context = stream_context_create($options);
+    // $result = file_get_contents($url, false, $context);
+    // if ($result === false) { 
+    //     throw new Exception("Error occur in login to rbs\n");
+    // }
+    // echo "Login form get: \n";
+    // var_dump($result);
 
     // Post to rbs
     // $nvps = getNameValuePair($ht);
@@ -320,6 +345,7 @@ function getCurrentDateFormatted() {
     return "{$date->format('Y-m-d h:i:s')}";
 }
 
+// May need to change
 function getNameValuePair($fieldList ,$ht) {
     $nvps = array();
     foreach($fieldList as $field)
@@ -354,6 +380,15 @@ function displayErrorMessage($entity) { // [HttpEntity entity]
 }
 
 //-----------Test connection & Mock function-----------//
+
+// TODO: make a mock ht
+function getMockHT() {
+    $ht = array(
+        "name" => "lalala",
+        "description" => "des",
+    );
+    return $ht;
+}
 
 function mockRoomList(&$roomToID) {
     $roomToID = array(
