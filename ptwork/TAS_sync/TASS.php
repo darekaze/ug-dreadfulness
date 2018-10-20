@@ -89,7 +89,7 @@ function replicateTimeTable($configs, $room, $subject) {
             $description = "{$subjectTitle} ({$sNameList})";
             echo "TASSynchronizer.replicateTimeTable(): by {$sNameList}";
 
-            // TODO: Need to modified field name to new rbs
+            // TODO: Need to modified field name to new rbs (require test)
             if ($rep_day != "-1" && isset($roomToID[$venue])) {
                 $synDate = getCurrentDateFormatted();
                 $done++;
@@ -203,7 +203,7 @@ function getTeachingRequirementStaff($conn, &$staffHT, $period, $jobno) {
     return $sHT;
 }
 
-// TODO: require rbs mysql account to test
+// PENDING: require rbs mysql account to test
 function getRemoteRoomList($rbs, &$roomToID) {
     $r = false;
     try {
@@ -229,7 +229,7 @@ function getRemoteRoomList($rbs, &$roomToID) {
     return $r;
 }
 
-// TODO: require rbs mysql account to test
+// PENDING: require rbs mysql account to test
 function delRepetition($rbs, $delCondition) {
     $rbsconn = new mysqli($rbs->db, $rbs->username, $rbs->password);
     if ($rbsconn->connect_error) {
@@ -256,8 +256,7 @@ function delRepetition($rbs, $delCondition) {
 }
 
 /**
- * TODO: Finish it
- * Use curl (need to store cookie in order to proceed)
+ * TODO: Need Mods for reserve requirement
  * @throws Exception if operation fail
  */
 function callInsertBookingURL($ht, $rbs) {
@@ -268,48 +267,36 @@ function callInsertBookingURL($ht, $rbs) {
         'language' => 'en_us'
     );
 
+    // Do login
     $ch = curl_init();
     curl_setopt_array($ch, array(
         CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_COOKIESESSION => 1,
         CURLOPT_COOKIEJAR => 'cookie.txt',
+        CURLOPT_COOKIEFILE => 'cookie.txt',
+        CURLOPT_FOLLOWLOCATION => 1,
         CURLOPT_URL => $rbs->loginURL,
         CURLOPT_POST => 1,
         CURLOPT_POSTFIELDS => http_build_query($data)
     )); // cookie.txt will be auto generated
-    
-    $store = curl_exec($ch); // do login
+    curl_exec($ch);
 
     // TODO: set the URL to the desire request
-    $url = $rbs->URL;
-    curl_setopt($ch, CURLOPT_URL, $url);
+    /* Another post request preserving the session
+    curl_setopt_array($ch, array(
+        CURLOPT_URL => $rbs->URL,
+        CURLOPT_POSTFIELDS => http_build_query($ht)
+    ));
+    */
 
+    curl_setopt($ch, CURLOPT_URL, $rbs->URL); // temp (change to post in future): get reserve page
     $content = curl_exec($ch);
 
-    // should output::
-    var_dump($store); // Dashboard
-    var_dump($content); // reservation page
-
+    var_dump($content); // output: reservation page
     curl_close($ch); // Terminate
-    
-    //////////////////////
-    // curl-less (failed)
-    // $url = $rbs->loginURL;
-    // $options = array(
-    //     'http' => array(
-    //         'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-    //         'method'  => 'POST',
-    //         'content' => http_build_query($data)
-    //     )
-    // );
-    // $context = stream_context_create($options);
-    // $result = file_get_contents($url, false, $context);
-    // if ($result === false) { 
-    //     throw new Exception("Error occur in login to rbs\n");
-    // }
-    // echo "Login form get: \n";
-    // var_dump($result);
 
-    // Post to rbs
+    ////////////////////////
+    // Post to rbs (old)
     // $nvps = getNameValuePair($ht);
     // $options = array(
     //     'http' => array(
@@ -343,21 +330,6 @@ function getCurrentDateFormatted() {
     date_default_timezone_set('Asia/Hong_Kong');
     $date = new DateTime();
     return "{$date->format('Y-m-d h:i:s')}";
-}
-
-// May need to change
-function getNameValuePair($fieldList ,$ht) {
-    $nvps = array();
-    foreach($fieldList as $field)
-        $nvps[$field] = $ht[$field];
-    return $nvps;
-}
-
-function getQueryString($fieldList, $ht) {
-    $r = "";
-    foreach($fieldList as $field)
-        $r = "{$field}={$ht[$field]}&";
-    return $r;
 }
 
 function getStaffNameList($staffHT) {
