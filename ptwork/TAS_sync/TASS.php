@@ -1,15 +1,12 @@
-<?php
-// TAS Sync program
-/**
-* @throws Exception if operation fail
-*/
+<?php // TAS Sync program
+
 function replicateTimeTable($configs, $room, $subject) {
     $roomToID = array();
 
     // Get lab room list
     echo "TASSynchronizer.replicateTimeTable(): Collecting Room Information, sucessful = ";
     // $r = getRemoteRoomList($configs->RBS, $roomToID); // need rbs account
-    $r = mockRoomList($roomToID);
+    $r = getRoomList($roomToID);
     echo $r . "\n";
 
     // Get TAS Info
@@ -125,7 +122,7 @@ function replicateTimeTable($configs, $room, $subject) {
                     "f_tas_subject_code" => $subjectCode,
                     "f_tas_syndate" => $synDate
                 );
-
+                // TODO: print out all array item
                 callInsertBookingURL($ht, $configs->RBS);
             } else {
                 echo "Not replicating {$subjectCode} by {$sname} {$wday} {$shour}-{$ehour} at {$venue}\n";
@@ -203,7 +200,7 @@ function getTeachingRequirementStaff($conn, &$staffHT, $period, $jobno) {
     return $sHT;
 }
 
-// PENDING: require rbs mysql account to test
+// May not required
 function getRemoteRoomList($rbs, &$roomToID) {
     $r = false;
     try {
@@ -229,7 +226,7 @@ function getRemoteRoomList($rbs, &$roomToID) {
     return $r;
 }
 
-// PENDING: require rbs mysql account to test
+// PENDING: require rbs mysql account to test (easiest) / use api GetReservations and DeleteReservation
 function delRepetition($rbs, $delCondition) {
     $rbsconn = new mysqli($rbs->db, $rbs->username, $rbs->password);
     if ($rbsconn->connect_error) {
@@ -256,7 +253,9 @@ function delRepetition($rbs, $delCondition) {
 }
 
 /**
- * TODO: Need Mods for reserve requirement
+ * TODO: Need Mods for reserve requirement / Try to use api (instead of using cookie)
+ * /Web/Services/index.php/Authentication/Authenticate
+ * Pass the following headers for all secure service calls: X-Booked-SessionToken and X-Booked-UserId
  * @throws Exception if operation fail
  */
 function callInsertBookingURL($ht, $rbs) {
@@ -282,6 +281,8 @@ function callInsertBookingURL($ht, $rbs) {
     curl_exec($ch);
 
     // TODO: set the URL to the desire request
+    // Api: /Web/Services/index.php/Reservations/
+    // Ref: https://ameslaboratory.bookedscheduler.com/Web/Services/index.php/#Resources
     /* Another post request preserving the session
     curl_setopt_array($ch, array(
         CURLOPT_URL => $rbs->URL,
@@ -351,6 +352,25 @@ function displayErrorMessage($entity) { // [HttpEntity entity]
     echo $display[0];
 }
 
+function getRoomList(&$roomToID) {
+    $roomToID = array(
+        "QT402" => 1,
+        "QT417" => 2,
+        "QR511" => 3,
+        "PQ604A" => 4,
+        "PQ604B" => 5,
+        "PQ604C" => 6,
+        "PQ605" => 7,
+        "PQ606" => 8,
+        "PQ603" => 9,
+        "P503" => 10,
+        "P507" => 16,
+        "P505" => 15,
+        "P504" => 14
+    );
+    return true;
+}
+
 //-----------Test connection & Mock function-----------//
 
 function testRbsURL() {
@@ -390,24 +410,6 @@ function getMockHT() {
     return $ht;
 }
 
-function mockRoomList(&$roomToID) {
-    $roomToID = array(
-        "QT402" => 1,
-        "QT417" => 2,
-        "QR511" => 3,
-        "PQ604A" => 4,
-        "PQ604B" => 5,
-        "PQ604C" => 6,
-        "PQ605" => 7,
-        "PQ606" => 8,
-        "PQ603" => 9,
-        "P503" => 10,
-        "P507" => 16,
-        "P505" => 15,
-        "P504" => 14
-    );
-    return true;
-}
 
 function testRemoteConn($rbs) {
     try {
