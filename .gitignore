@@ -45,3 +45,5 @@ hs_err_pid*
 
 # raw html_file
 *.html
+ptwork/TAS_sync/config.php
+ptwork/TAS_sync/cookie.txt

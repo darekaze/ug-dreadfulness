@@ -68,16 +68,17 @@ function replicateTimeTable($configs, $room, $subject) {
             $count++;
             $jobno = $row["JOBNO"];
             $subjectCode = $row["SUBJECT_CODE"];
-            $start_seconds = convertToSeconds($row["SHOUR"]);
-            $end_seconds = convertToSeconds($row["EHOUR"]);
-            $rep_day = convertToDayOfWeek($row["WDAY"]);
+            $wday = $row["WDAY"];
+            $shour = $row["SHOUR"];
+            $ehour = $row["EHOUR"];
             $venue = $row["VENUE"];
 
-            echo "TASSynchronizer.replicateTimeTable(): Processing {$subjectCode} on {$rep_day} {$start_seconds}-{$end_seconds} at {$venue}";
-            if(empty($subjectHT[$subjectCode]["SUBJECT_TITLE"])) {
+            echo "TASSynchronizer.replicateTimeTable(): Processing {$subjectCode} on {$wday} {$shour}-{$ehour} at {$venue}";
+            echo $subjectHT[$subjectCode][1];
+            if(empty($subjectHT[$subjectCode][1])) {
                 throw new Exception("*** ERROR: TASSynchronizer.replicateTimeTable(): subject title of {$subjectCode} not available");
             }
-            $subjectTitle = $subjectHT[$subjectCode]["SUBJECT_TITLE"];
+            $subjectTitle = $subjectHT[$subjectCode][1];
 
             if(empty($teachingRequirementHT[$jobno]["staffHT"])) {
                 throw new Exception("*** ERROR: TASSynchronizer.replicateTimeTable(): Teaching Requirement of {$jobno} subject code {$subjectCode} not available");
@@ -86,21 +87,19 @@ function replicateTimeTable($configs, $room, $subject) {
             $description = "{$subjectTitle} ({$sNameList})";
             echo "TASSynchronizer.replicateTimeTable(): by {$sNameList}";
 
-            // TODO: Need to modified field name to new rbs (require test)
-            if ($rep_day != "-1" && isset($roomToID[$venue])) {
+            if (convertToDayOfWeek($wday) != "-1" && isset($roomToID[$venue])) {
                 $synDate = getCurrentDateFormatted();
                 $done++;
+                // TODO: Need to modified ht field name to fit new RBS JSON request format 
                 $ht = array(
                     "name" => $subjectCode,
                     "description" => $description,
                     "start_day" => $configs->start_day,
                     "start_month" => $configs->start_month,
                     "start_year" => $configs->start_year,
-                    "start_seconds" => $start_seconds,
                     "end_day" => $configs->start_day,
                     "end_month" => $configs->start_month,
                     "end_year" => $configs->start_year,
-                    "end_seconds" => $end_seconds,
                     "rooms[]" => $roomToID[$venue],
                     "type" => "I",
                     "confirmed" => "1",
@@ -113,7 +112,6 @@ function replicateTimeTable($configs, $room, $subject) {
                     "rep_end_day" => $configs->end_day,
                     "rep_end_month" => $configs->end_month,
                     "rep_end_year" => $configs->end_year,
-                    "rep_day[]" => $rep_day,
                     "rep_num_weeks" => "",
                     "returl" => "",
                     "create_by" => "cspaulin",
@@ -123,13 +121,14 @@ function replicateTimeTable($configs, $room, $subject) {
                     "f_tas_syndate" => $synDate
                 );
                 // TODO: print out all array item
-                callInsertBookingURL($ht, $configs->RBS);
+                echo "No problem so far<br>";
+                // callInsertBookingURL($ht, $configs->RBS);
             } else {
-                echo "Not replicating {$subjectCode} by {$sname} {$wday} {$shour}-{$ehour} at {$venue}\n";
+                echo "Not replicating {$subjectCode} by {$sNameList} {$wday} {$shour}-{$ehour} at {$venue}<br>\n";
             }
         } catch (Exception $e) {
             echo $e->getMessage();
-        }   
+        }
     } 
     echo "Count Matching condition = {$count}, done = {$done}\n";
     oci_close($conn);
@@ -253,67 +252,23 @@ function delRepetition($rbs, $delCondition) {
 }
 
 /**
- * TODO: Need Mods for reserve requirement / Try to use api (instead of using cookie)
- * /Web/Services/index.php/Authentication/Authenticate
- * Pass the following headers for all secure service calls: X-Booked-SessionToken and X-Booked-UserId
+ * TODO: Use api to insert
  * @throws Exception if operation fail
  */
 function callInsertBookingURL($ht, $rbs) {
-    $data = array(
-        'email' => trim($rbs->loginEmail),
-        'password' => trim($rbs->loginPassword),
-        'login' => 'submit',
-        'language' => 'en_us'
-    );
-
-    // Do login
-    $ch = curl_init();
-    curl_setopt_array($ch, array(
-        CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_COOKIESESSION => 1,
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-        CURLOPT_COOKIEFILE => 'cookie.txt',
-        CURLOPT_FOLLOWLOCATION => 1,
-        CURLOPT_URL => $rbs->loginURL,
-        CURLOPT_POST => 1,
-        CURLOPT_POSTFIELDS => http_build_query($data)
-    )); // cookie.txt will be auto generated
-    curl_exec($ch);
+    $login_json = Api_RbsAuth($rbs);
 
     // TODO: set the URL to the desire request
     // Api: /Web/Services/index.php/Reservations/
     // Ref: https://ameslaboratory.bookedscheduler.com/Web/Services/index.php/#Resources
-    /* Another post request preserving the session
-    curl_setopt_array($ch, array(
-        CURLOPT_URL => $rbs->URL,
-        CURLOPT_POSTFIELDS => http_build_query($ht)
-    ));
+
+    /* Pass the following headers for all secure service calls:  
+    * CURLOPT_HTTPHEADER => array(
+    * 'X-Booked-SessionToken: $obj->{'sessionToken'}',
+    * 'X-Booked-UserId: $obj->{'userId'}'
+    * )
     */
-
-    curl_setopt($ch, CURLOPT_URL, $rbs->URL); // temp (change to post in future): get reserve page
-    $content = curl_exec($ch);
-
-    var_dump($content); // output: reservation page
     curl_close($ch); // Terminate
-
-    ////////////////////////
-    // Post to rbs (old)
-    // $nvps = getNameValuePair($ht);
-    // $options = array(
-    //     'http' => array(
-    //         'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-    //         'method'  => 'POST',
-    //         'content' => http_build_query($nvps)
-    //     )
-    // );
-    // $context  = stream_context_create($options);
-    // $result = file_get_contents($rbsURL, false, $context);
-    // if ($result === false) { 
-    //     throw new Exception("Error occur in inserting data to rbs\n");
-    // }
-    
-    // echo "Send Data form get: \n";
-    // var_dump($result);
 }
 
 
@@ -341,17 +296,6 @@ function getStaffNameList($staffHT) {
     return $str;
 }
 
-function displayResponseContent($entity) {
-    echo "Writing Content of Response" . html_entity_decode($entity);
-}
-
-function displayErrorMessage($entity) { // [HttpEntity entity]
-    $content = html_entity_decode($entity);
-    $display = explode('<!--###Begin Error Message###', $content);
-    $display = explode('###End Error Message###-->', $display[1]);
-    echo $display[0];
-}
-
 function getRoomList(&$roomToID) {
     $roomToID = array(
         "QT402" => 1,
@@ -371,34 +315,29 @@ function getRoomList(&$roomToID) {
     return true;
 }
 
-//-----------Test connection & Mock function-----------//
 
-function testRbsURL() {
+//-----------Api function-----------//
+function Api_RbsAuth($rbs) {
+    $data = (object) array(
+        'username' => trim($rbs->loginEmail),
+        'password' => trim($rbs->loginPassword),
+    );
+    // Do login
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://demo.bookedscheduler.com/Web/index.php');
-    curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/32.0.1700.107 Chrome/32.0.1700.107 Safari/537.36');
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, "username=admin&password=password");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_COOKIESESSION, 1);
-    curl_setopt($ch, CURLOPT_COOKIEJAR, 'cookie.txt');  // write
-    curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookie.txt');  // read
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // Because some sites redirect and set cookies at the second page, this may be needed
-    $answer = curl_exec($ch);
-    if (curl_error($ch)) {
-        echo "wat\n";
-        echo curl_error($ch);
-    }
-    
-    //another request preserving the session
-    curl_setopt($ch, CURLOPT_URL, 'https://demo.bookedscheduler.com/Web/dashboard.php');
-    curl_setopt($ch, CURLOPT_POST, false);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, "");
-    $answer = curl_exec($ch);
-    if (curl_error($ch)) {
-        echo curl_error($ch);
-    }
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_URL => $rbs->AuthApi,
+        CURLOPT_POST => 1,
+        CURLOPT_POSTFIELDS => json_encode($data)
+    )); // cookie.txt will be auto generated
+    $res = curl_exec($ch);
+    $obj = json_decode($res);
+
     curl_close($ch); // Terminate
+    if (!$obj->{'isAuthenticated'}) {
+        throw new Exception("Failed to Authenticated...");
+    }
+    return $obj; // return json object
 }
 
 // TODO: make a mock ht
@@ -410,7 +349,7 @@ function getMockHT() {
     return $ht;
 }
 
-
+//-----------Test connection & Mock function-----------//
 function testRemoteConn($rbs) {
     try {
         $rbsconn = new mysqli($rbs->db, $rbs->username, $rbs->password);
@@ -446,14 +385,62 @@ function testLocalConn($tas) {
     }
 }
 
+function oldCallingBookingURL($rbs) {
+    $data = (object) array(
+        'email' => trim($rbs->loginEmail),
+        'password' => trim($rbs->loginPassword),
+        'login' => 'submit',
+        'language' => 'en_us'
+    );
+
+    // Do login
+    $ch = curl_init();
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_COOKIESESSION => 1,
+        CURLOPT_COOKIEJAR => 'cookie.txt',
+        CURLOPT_COOKIEFILE => 'cookie.txt',
+        CURLOPT_FOLLOWLOCATION => 1,
+        CURLOPT_URL => $rbs->loginURL,
+        CURLOPT_POST => 1,
+        CURLOPT_POSTFIELDS => http_build_query($data)
+    )); // cookie.txt will be auto generated
+    curl_exec($ch);
+
+    curl_setopt($ch, CURLOPT_URL, $rbs->URL);
+    $content = curl_exec($ch);
+    var_dump($content);
+
+    curl_close($ch); // Terminate
+
+    ////////////////////////
+    // Post to rbs (old)
+    // $nvps = getNameValuePair($ht);
+    // $options = array(
+    //     'http' => array(
+    //         'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+    //         'method'  => 'POST',
+    //         'content' => http_build_query($nvps)
+    //     )
+    // );
+    // $context  = stream_context_create($options);
+    // $result = file_get_contents($rbsURL, false, $context);
+    // if ($result === false) { 
+    //     throw new Exception("Error occur in inserting data to rbs\n");
+    // }
+    
+    // echo "Send Data form get: \n";
+    // var_dump($result);
+}
+
 //---------------Main------------------//
 
 function start() {
     $configs = include('config.php');
     echo "Replicating TAS Timetable\n";	
     // testLocalConn($configs->TAS);
-    callInsertBookingURL(array(), $configs->RBS);
-    // replicateTimeTable($configs, null, null);
+    // oldCallingBookingURL($configs->RBS);
+    replicateTimeTable($configs, null, null);
 }
 
 start();

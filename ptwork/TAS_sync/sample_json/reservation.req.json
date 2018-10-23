@@ -1,0 +1,67 @@
+{
+  "accessories": [
+    {
+      "accessoryId": 1,
+      "quantityRequested": 2
+    }
+  ],
+  "customAttributes": [
+    {
+      "attributeId": 2,
+      "attributeValue": "some value"
+    }
+  ],
+  "description": "reservation description",
+  "endDateTime": "2018-10-23T10:27:16+0000",
+  "invitees": [
+    1,
+    2,
+    3
+  ],
+  "participants": [
+    1,
+    2
+  ],
+  "participatingGuests": [
+    "participating.guest@email.com"
+  ],
+  "invitedGuests": [
+    "invited.guest@email.com"
+  ],
+  "recurrenceRule": {
+    "type": "daily|monthly|none|weekly|yearly",
+    "interval": 3,
+    "monthlyType": "dayOfMonth|dayOfWeek|null",
+    "weekdays": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "repeatTerminationDate": "2018-10-23T10:27:16+0000"
+  },
+  "resourceId": 1,
+  "resources": [
+    2,
+    3
+  ],
+  "startDateTime": "2018-10-23T10:27:16+0000",
+  "title": "reservation title",
+  "userId": 1,
+  "startReminder": {
+    "value": 15,
+    "interval": "hours or minutes or days"
+  },
+  "endReminder": null,
+  "allowParticipation": true,
+  "retryParameters": [
+    {
+      "name": "name",
+      "value": "value"
+    }
+  ],
+  "termsAccepted": true
+}

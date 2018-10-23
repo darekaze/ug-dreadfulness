@@ -1,0 +1,15 @@
+{
+  "referenceNumber": "referenceNumber",
+  "isPendingApproval": true,
+  "links": [
+    {
+      "href": "http://url/to/reservation",
+      "title": "get_reservation"
+    },
+    {
+      "href": "http://url/to/update/reservation",
+      "title": "update_reservation"
+    }
+  ],
+  "message": null
+}
