@@ -1,5 +1,4 @@
 <?php // TAS Sync program
-
 function replicateTimeTable($configs, $room, $subject) {
     $roomToID = array();
 
@@ -62,6 +61,7 @@ function replicateTimeTable($configs, $room, $subject) {
     // TAS Synchronizer start replicate time table
     $count = 0;
     $done = 0;
+    $login = Api_RbsAuth($configs->RBS);
 
     while ($row = oci_fetch_array($stid, OCI_RETURN_NULLS+OCI_ASSOC)) {
         try {
@@ -91,7 +91,7 @@ function replicateTimeTable($configs, $room, $subject) {
                 $synDate = getCurrentDateFormatted();
                 $done++;
                 // TODO: Need to modified ht field name to fit new RBS JSON request format 
-                $ht = array(
+                $ht = (object) array(
                     "name" => $subjectCode,
                     "description" => $description,
                     "start_day" => $configs->start_day,
@@ -120,7 +120,7 @@ function replicateTimeTable($configs, $room, $subject) {
                     "f_tas_subject_code" => $subjectCode,
                     "f_tas_syndate" => $synDate
                 );
-                // TODO: print out all array item
+                // print out all array item (var_dump)
                 echo "No problem so far<br>";
                 // callInsertBookingURL($ht, $configs->RBS);
             } else {
@@ -129,7 +129,8 @@ function replicateTimeTable($configs, $room, $subject) {
         } catch (Exception $e) {
             echo $e->getMessage();
         }
-    } 
+    }
+    Api_RbsSignOut($login, $configs->RBS);
     echo "Count Matching condition = {$count}, done = {$done}\n";
     oci_close($conn);
 
@@ -225,7 +226,7 @@ function getRemoteRoomList($rbs, &$roomToID) {
     return $r;
 }
 
-// PENDING: require rbs mysql account to test (easiest) / use api GetReservations and DeleteReservation
+// PENDING: require rbs mysql account (currently cannot access)
 function delRepetition($rbs, $delCondition) {
     $rbsconn = new mysqli($rbs->db, $rbs->username, $rbs->password);
     if ($rbsconn->connect_error) {
@@ -252,28 +253,29 @@ function delRepetition($rbs, $delCondition) {
 }
 
 /**
- * TODO: Use api to insert
  * @throws Exception if operation fail
  */
-function callInsertBookingURL($ht, $rbs) {
-    $login_json = Api_RbsAuth($rbs);
-
-    // TODO: set the URL to the desire request
-    // Api: /Web/Services/index.php/Reservations/
-    // Ref: https://ameslaboratory.bookedscheduler.com/Web/Services/index.php/#Resources
-
-    /* Pass the following headers for all secure service calls:  
-    * CURLOPT_HTTPHEADER => array(
-    * 'X-Booked-SessionToken: $obj->{'sessionToken'}',
-    * 'X-Booked-UserId: $obj->{'userId'}'
-    * )
-    */
+function callInsertBookingURL($ht, $login, $rbs) {
+    $ch = curl_init();
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_URL => $rbs->Api_Reserve,
+        CURLOPT_HTTPHEADER => array(
+            "X-Booked-SessionToken: $login->sessionToken",
+            "X-Booked-UserId: $login->userId"
+        ),
+        CURLOPT_POST => 1,
+        CURLOPT_POSTFIELDS => json_encode($ht)
+    ));
+    $res = (object) json_decode(curl_exec($ch), true);
     curl_close($ch); // Terminate
+
+    // TODO: Validate request (should throw exception???)
+    echo var_dump($res);
 }
 
-
 // ---------------util function--------------//
-
+// May not Required
 function convertToSeconds($t) {
     return (strtotime($t) - strtotime('TODAY'));
 }
@@ -315,34 +317,52 @@ function getRoomList(&$roomToID) {
     return true;
 }
 
-
 //-----------Api function-----------//
+/**
+ * Test: Done
+ * @throws Exception if operation fail
+ */
 function Api_RbsAuth($rbs) {
     $data = (object) array(
         'username' => trim($rbs->loginEmail),
         'password' => trim($rbs->loginPassword),
     );
-    // Do login
     $ch = curl_init();
     curl_setopt_array($ch, array(
         CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_URL => $rbs->AuthApi,
+        CURLOPT_URL => $rbs->Api_Auth,
         CURLOPT_POST => 1,
         CURLOPT_POSTFIELDS => json_encode($data)
-    )); // cookie.txt will be auto generated
-    $res = curl_exec($ch);
-    $obj = json_decode($res);
+    ));
+    $res = (object) json_decode(curl_exec($ch), true);
+    curl_close($ch);
 
-    curl_close($ch); // Terminate
-    if (!$obj->{'isAuthenticated'}) {
+    if (!$res->isAuthenticated) {
         throw new Exception("Failed to Authenticated...");
     }
-    return $obj; // return json object
+    return $res; // return json assoc array
 }
 
-// TODO: make a mock ht
+// Test: Done
+function Api_RbsSignOut($login, $rbs) {
+    $ch = curl_init();
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_URL => $rbs->Api_SignOut,
+        CURLOPT_POST => 1,
+        CURLOPT_POSTFIELDS => json_encode((object) array(
+            'userid' => $login->userId,
+            'sessionToken' => $login->sessionToken
+        ))
+    ));
+    curl_exec($ch);
+    curl_close($ch);
+    echo "RBS Logging out...Token has expired\n";
+}
+
 function getMockHT() {
-    $ht = array(
+    // TODO: make a mock reservation json request
+    $ht = (object) array(
         "name" => "lalala",
         "description" => "des",
     );
@@ -352,7 +372,7 @@ function getMockHT() {
 //-----------Test connection & Mock function-----------//
 function testRemoteConn($rbs) {
     try {
-        $rbsconn = new mysqli($rbs->db, $rbs->username, $rbs->password);
+        $rbsconn = new mysqli($rbs->host, $rbs->username, $rbs->password, $rbs->db);
         if ($rbsconn->connect_error) {
             throw new Exception("Connection failed: " . $rbsconn->connect_error . "\n");
         }
@@ -385,62 +405,33 @@ function testLocalConn($tas) {
     }
 }
 
-function oldCallingBookingURL($rbs) {
-    $data = (object) array(
-        'email' => trim($rbs->loginEmail),
-        'password' => trim($rbs->loginPassword),
-        'login' => 'submit',
-        'language' => 'en_us'
-    );
-
-    // Do login
+// For testing token request
+function mockRbsRequest($rbs) {
+    $login = Api_RbsAuth($rbs);
     $ch = curl_init();
     curl_setopt_array($ch, array(
         CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_COOKIESESSION => 1,
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-        CURLOPT_COOKIEFILE => 'cookie.txt',
-        CURLOPT_FOLLOWLOCATION => 1,
-        CURLOPT_URL => $rbs->loginURL,
-        CURLOPT_POST => 1,
-        CURLOPT_POSTFIELDS => http_build_query($data)
-    )); // cookie.txt will be auto generated
-    curl_exec($ch);
+        CURLOPT_URL => 'https://devrbs.comp.polyu.edu.hk/Web/Services/index.php/Attributes/10',
+        CURLOPT_HTTPHEADER => array(
+            "X-Booked-SessionToken: $login->sessionToken",
+            "X-Booked-UserId: $login->userId"
+        )
+    ));
+    $res = (object) json_decode(curl_exec($ch), true);
+    curl_close($ch);
 
-    curl_setopt($ch, CURLOPT_URL, $rbs->URL);
-    $content = curl_exec($ch);
-    var_dump($content);
-
-    curl_close($ch); // Terminate
-
-    ////////////////////////
-    // Post to rbs (old)
-    // $nvps = getNameValuePair($ht);
-    // $options = array(
-    //     'http' => array(
-    //         'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-    //         'method'  => 'POST',
-    //         'content' => http_build_query($nvps)
-    //     )
-    // );
-    // $context  = stream_context_create($options);
-    // $result = file_get_contents($rbsURL, false, $context);
-    // if ($result === false) { 
-    //     throw new Exception("Error occur in inserting data to rbs\n");
-    // }
-    
-    // echo "Send Data form get: \n";
-    // var_dump($result);
+    echo var_dump($res);
+    Api_RbsSignOut($login, $rbs);
 }
 
 //---------------Main------------------//
-
 function start() {
     $configs = include('config.php');
     echo "Replicating TAS Timetable\n";	
+    // testRemoteConn($configs->RBS);
     // testLocalConn($configs->TAS);
-    // oldCallingBookingURL($configs->RBS);
-    replicateTimeTable($configs, null, null);
+    mockRbsRequest($configs->RBS);
+    // replicateTimeTable($configs, null, null);
 }
 
 start();

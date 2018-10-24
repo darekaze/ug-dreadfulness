@@ -7,15 +7,15 @@ return (object) array(
         'password' => 'xxx'
     ),
     'RBS' => (object) array(
-        'db' => 'myxxx.comp.polyu.edu.hk/rbs',
+        'host' => 'xxxmysql.comp.polyu.edu.hk',
         'username' => 'xxx',
         'password' => 'xxx',
-        'URL' => 'https://xxx.comp.polyu.edu.hk/Web/reservation.php',
-        'loginURL' => 'https://xxx.comp.polyu.edu.hk/Web/index.php',
+        'db' => 'test_booked',
         // New Apis
         'loginEmail' => 'admin',
         'loginPassword' => 'password',
         'Api_Auth' => 'https://devrbs.comp.polyu.edu.hk/Web/Services/index.php/Authentication/Authenticate',
+        'Api_SignOut' => 'https://devrbs.comp.polyu.edu.hk/Web/Services/index.php/Authentication/SignOut',
         'Api_Reserve' => 'https://devrbs.comp.polyu.edu.hk/Web/Services/index.php/Reservations/'
     ),
     // TAS Sync Configuration
