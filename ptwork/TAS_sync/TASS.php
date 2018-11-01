@@ -3,7 +3,7 @@ function replicateTimeTable($configs, $room, $subject) {
     $roomToID = array();
 
     // Get lab room list
-    echo "TASSynchronizer.replicateTimeTable(): Collecting Room Information, sucessful = ";
+    echo "TASSynchronizer.replicateTimeTable(): Collecting Room Information, successful = ";
     // $r = getRemoteRoomList($configs->RBS, $roomToID); // need rbs account
     $r = getRoomList($roomToID);
     echo $r . "\n";
@@ -13,7 +13,7 @@ function replicateTimeTable($configs, $room, $subject) {
     $subjectHT = array();
     $teachingRequirementHT = array();
 
-    echo "TASSynchronizer.replicateTimeTable(): Collecting TAS Basic Information, sucessful = ";
+    echo "TASSynchronizer.replicateTimeTable(): Collecting TAS Basic Information, successful = ";
     $r = false;
     try {
         $conn = oci_connect($configs->TAS->username, $configs->TAS->password, $configs->TAS->db);
@@ -232,7 +232,7 @@ function delRepetition($rbs, $delCondition) {
     if ($rbsconn->connect_error) {
         die("Connection failed: " . $rbsconn->connect_error);
     }
-    echo "Removing record from RBS before replicatiion for condition {$delCondition} .... ";
+    echo "Removing record from RBS before replication for condition {$delCondition} .... ";
     
     $sql = "delete from mrbs_entry where {$delCondition}";
     if ($rbsconn->query($sql) === true) {
