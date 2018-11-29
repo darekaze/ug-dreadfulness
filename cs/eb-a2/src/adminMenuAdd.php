@@ -70,7 +70,7 @@ if ($_POST && isset($_POST['submit'])) {
         <input type="number" name="food_price" id="food_price" required>
 
         <label for="food_available">Availability</label>
-        <input type="radio" name="food_available" value="1" required>Available<br>
+        <input type="radio" name="food_available" value="1" required checked="checked">Available<br>
         <input type="radio" name="food_available" value="0">Out of Order<br>
         <br>
         <input class="but" type="submit" name="submit" value="Submit">

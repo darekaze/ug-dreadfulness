@@ -14,3 +14,9 @@ if (!function_exists('_log_die')) {
         die($msg);
     }
 }
+
+if (!function_exists('escape')) {
+    function escape($html) {
+        return htmlspecialchars($html, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
+    }
+}
