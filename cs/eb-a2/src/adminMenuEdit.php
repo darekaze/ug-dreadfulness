@@ -42,11 +42,11 @@ if (isset($_GET['food_id'])) {
     $id = $_GET['food_id'];
 
     $sql = "SELECT * FROM menus WHERE food_id = :food_id";
-    $statement = $db->prepare($sql);
-    $statement->bindValue(':food_id', $id);
-    $statement->execute();
+    $stmt = $db->prepare($sql);
+    $stmt->bindValue(':food_id', $id);
+    $stmt->execute();
 
-    $menu = $statement->fetch(PDO::FETCH_ASSOC);
+    $menu = $stmt->fetch(PDO::FETCH_ASSOC);
   } catch(PDOException $error) {
       echo $sql . "<br>" . $error->getMessage();	
   }

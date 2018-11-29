@@ -10,10 +10,10 @@ if(array_key_exists('is_logged', $_SESSION) === FALSE && $_SESSION['level'] < 2)
 try {
     $sql = "SELECT * FROM menus";
 
-    $statement = $db->prepare($sql);
-    $statement->execute();
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
 
-    $result = $statement->fetchAll();
+    $result = $stmt->fetchAll();
 
 } catch(PDOException $error) {
     echo $sql . "<br>" . $error->getMessage();
@@ -31,11 +31,10 @@ try {
 </head>
 <body>
     <h1>Food Station - Menu Manager</h1>
-    <ul>
-        <li><a href="adminMenuAdd.php">Create</a> - Add new menu item</li>
-    </ul>
-
     <h2>Menu List</h2>
+    <blockquote>
+        <a href="adminMenuAdd.php">Add new menu</a>
+    </blockquote>
     <table>
         <thead>
             <tr>
@@ -55,7 +54,7 @@ try {
             <td><?= escape($row["food_name"]); ?></td>
             <td><?= escape($row["food_category"]); ?></td>
             <td><?= escape($row["food_description"]); ?></td>
-            <td><?= escape($row["food_price"]); ?></td>
+            <td>HK$<?= escape($row["food_price"]); ?></td>
             <td><?= escape($row["food_available"] ? "Yes" : "Disabled"); ?></td>
             <td><a href="adminMenuEdit.php?food_id=<?= escape($row["food_id"]); ?>">Edit</a></td>
             <td><a href="adminMenuDelete.php?food_id=<?= escape($row["food_id"]); ?>">Remove</a></td>

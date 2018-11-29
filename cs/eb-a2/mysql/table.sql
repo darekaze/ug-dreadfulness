@@ -14,3 +14,11 @@ CREATE TABLE IF NOT EXISTS `menus` (
     `food_price` INT(11) NOT NULL,
     `food_available` TINYINT UNSIGNED NOT NULL
 ) ENGINE = InnoDB CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `orders` (
+    `order_id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `order_username` VARCHAR(100) NOT NULL,
+    `order_item` VARCHAR(100) NOT NULL,
+    `order_price` FLOAT NOT NULL,
+    `order_status` VARCHAR(100) NOT NULL
+) ENGINE = InnoDB CHARSET=utf8;
