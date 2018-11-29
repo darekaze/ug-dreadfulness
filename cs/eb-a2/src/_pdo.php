@@ -1,10 +1,10 @@
 <?php
 
-// config
-$dbhost    = 'localhost';
-$dbname    = 'DATABASE_NAME';
-$dbuser    = 'USERNAME';
-$dbpasswd  = 'PASSWORD';
+// database config
+$dbhost    = 'mysql.comp.polyu.edu.hk';
+$dbname    = '16094501d';
+$dbuser    = '16094501d';
+$dbpasswd  = 'pfnkymfx';
 $dbcharset = 'utf8';
 
 try {

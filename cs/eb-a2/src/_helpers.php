@@ -8,8 +8,6 @@ if (!function_exists('_is_valid')) {
     }
 }
 
-/// ------------------------------------------------------------------------
-
 if (!function_exists('_log_die')) {
     function _log_die($msg) {
         error_log($msg);

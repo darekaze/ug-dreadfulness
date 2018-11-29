@@ -18,7 +18,7 @@ body{width:615px;font-family:arial;letter-spacing:1px;line-height:20px;}
 	$pdo_statement->execute();
 	$result = $pdo_statement->fetchAll();
 ?>
-<div style="text-align:right;margin:20px 0px;"><a href="add.php" class="button_link"><img src="crud-icon/add.png" title="Add New Record" style="vertical-align:bottom;" /> Create</a></div>
+<div style="text-align:right;margin:20px 0px;"><a href="userRegister.php" class="button_link"><img src="crud-icon/add.png" title="Add New Record" style="vertical-align:bottom;" /> Create</a></div>
 <table class="tbl-qa">
   <thead>
 	<tr>

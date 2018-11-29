@@ -1,9 +1,9 @@
 <?php
 
-require_once 'route.php';
+require_once '_route.php';
 
 if (array_key_exists('is_logged', $_SESSION)) {
-    header('Location: members.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -14,10 +14,10 @@ if ($_POST && isset($_POST['submit'])) {
     $password = trim(filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING));
 
     if (_is_valid($username) === FALSE)
-        _log_die('You did not fill in a username.');
+        _log_die('You did not fill in a username. <a href="userLogin.php">Go Back</a>');
 
     if (_is_valid($password) === FALSE)
-        _log_die('You did not fill in a password.');
+        _log_die('You did not fill in a password. <a href="userLogin.php">Go Back</a>');
 
     $stmt = $db->prepare('SELECT * FROM `users` WHERE `username` = :username LIMIT 1');
     $stmt->execute(array(':username' => $username));
@@ -25,20 +25,20 @@ if ($_POST && isset($_POST['submit'])) {
     $num = $db->query('SELECT FOUND_ROWS()')->fetchColumn();
 
     if($num == 0)
-        _log_die('Incorrect username or password, please <a href="login.php">try again</a>.');
+        _log_die('Incorrect username or password, please <a href="userLogin.php">try again</a>.');
 
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $stmt->closeCursor();
 
     if(password_verify($password, $row['password']) === FALSE)
-        _log_die('Incorrect username or password, please <a href="login.php">try again</a>.');
+        _log_die('Incorrect username or password, please <a href="userLogin.php">try again</a>.');
 
     // if login is ok then we add a cookie
     $_SESSION['is_logged'] = TRUE;
     $_SESSION['username']  = $username;
 
-    // then redirect them to the members area
-    header('Location: members.php');
+    // redirect to home
+    header('Location: index.php');
     exit;
 }
 
@@ -46,6 +46,15 @@ if ($_POST && isset($_POST['submit'])) {
 else {
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login</title>
+</head>
+<body>
 <form method="post">
     <table border="0">
         <tr><td colspan=2><h1>Login</h1></td></tr>
@@ -60,6 +69,8 @@ else {
         </td></tr>
     </table>
 </form>
+</body>
+</html>
 
 <?php
 }

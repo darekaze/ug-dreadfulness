@@ -5,5 +5,5 @@
  */
 session_start();
 
-require_once 'pdo.php';
-require_once 'helpers.php';
+require_once '_pdo.php';
+require_once '_helpers.php';
