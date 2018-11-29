@@ -17,10 +17,6 @@ if ($_POST && isset($_POST['submit'])) {
         "food_available"  => $_POST['food_available']
     );
 
-    foreach ($new_menu as $item) {
-        echo $item;
-    }
-
     try {
         $sql = sprintf(
             "INSERT INTO %s (%s) values (%s)",
@@ -32,7 +28,7 @@ if ($_POST && isset($_POST['submit'])) {
         $stmt->execute($new_menu);
         $stmt->closeCursor();
 
-        echo "<p>Item has been added -- <a href=\"adminMenuManager.php\">go back</a></p>";
+        echo "<p>" . $new_menu['food_name'] . " has been added -- <a href=\"adminMenuManager.php\">Back to Menu Manager</a></p>";
 
     } catch (PDOException $e) {
         $stmt->closeCursor();
