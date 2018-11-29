@@ -58,7 +58,7 @@ try {
     
 <?php 
 if(array_key_exists('is_logged', $_SESSION) === FALSE) { ?>
-    <h4>Login/Register for using this service, plus 10% off!</h4>
+    <h4>Login/Register for using our service, plus 10% off!</h4>
     <p><a href="userLogin.php">Login</a> | <a href="userRegister.php">Register</a></p>
 <?php
 } else { ?>
