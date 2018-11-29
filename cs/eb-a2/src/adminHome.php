@@ -30,7 +30,7 @@ if(array_key_exists('is_logged', $_SESSION) === FALSE) { ?>
 <?php 
 } ?>
     <ul>
-        <li><a href="adminViewLiveOrder.php">Live Order</a></li>
+        <li><a href="adminLiveOrder.php">Live Order</a></li>
         <li><a href="adminMenuManager.php">Menu Manager</a></li>
         <li><a href="adminViewUser.php">View All User</a></li>
     </ul>

@@ -141,5 +141,42 @@ if(array_key_exists('is_logged', $_SESSION) === FALSE) { ?>
         <?php endif; endforeach; ?>
         </tbody>
     </table>
+    <br>
+    <h3>Others</h3>
+    <table>
+        <thead>
+            <tr>
+            <th colspan=2>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach($result as $row):
+            if($row["food_category"] === "others"): ?>
+            <tr>
+            <td><img src="<?= $row["food_image_url"]; ?>" alt=""/></td>
+            <td><?= escape($row["food_name"]); ?></td>
+            <td><?= escape($row["food_description"]); ?></td>
+            <td>HK$<?= escape(
+                array_key_exists('is_logged', $_SESSION) 
+                ? $row["food_price"] * 0.9 : $row["food_price"]
+            ); ?></td>
+            <td>
+            <?php if(array_key_exists('is_logged', $_SESSION)): ?>
+            <form method="post">
+                <input type="hidden" id="order_item" name="order_item"
+                    value="<?= escape($row['food_name']); ?>">
+                <input type="hidden" id="order_price" name="order_price"
+                    value="<?= $row["food_price"] * 0.9; ?>">
+                <input type="submit" name="add" id="add" value="Add to Cart"/>
+            </form>
+            <?php endif; ?>
+            </td>
+        </tr>
+        <?php endif; endforeach; ?>
+        </tbody>
+    </table>
 </body>
 </html>

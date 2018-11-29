@@ -37,7 +37,7 @@ try {
             <tr>
             <th>#</th>
             <th>Username</th>
-            <th>Level</th>
+            <th>Access Level</th>
             </tr>
         </thead>
         <tbody>

@@ -19,9 +19,8 @@ if(array_key_exists('delete_item',$_POST)){
     $stmt->execute();
     $stmt->closeCursor();
 
-    $success = "";
-
     echo "<p>One item has been successfully removed from cart!</p>";
+    
   } catch(PDOException $error) {
     echo $sql . "<br>" . $error->getMessage();
   }
@@ -30,10 +29,24 @@ if(array_key_exists('delete_item',$_POST)){
 // Fire order
 if(array_key_exists('fire',$_POST)){
 
+  try {
+    $sql = "UPDATE orders
+            SET order_status = 'PAID'
+            WHERE order_username = :order_username AND order_status = 'IN_CART'";
+    $stmt = $db->prepare($sql);
+    $stmt->bindValue(':order_username', $_SESSION['username']);
+    $stmt->execute();
+    $stmt->closeCursor();
+
+    echo "<p>You have place your order, Thank you! --- <a href=\"index.php\">Back to Home</a></p>";
+
+  } catch(PDOException $error) {
+      echo $sql . "<br>" . $error->getMessage();
+  }
 }
 
 try {
-  $sql = "SELECT * FROM orders WHERE order_status='IN_CART'";
+  $sql = "SELECT * FROM orders WHERE order_username='". $_SESSION['username'] ."' AND order_status='IN_CART'";
 
   $stmt = $db->prepare($sql);
   $stmt->execute();
