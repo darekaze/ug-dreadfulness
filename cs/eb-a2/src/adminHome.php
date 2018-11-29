@@ -29,10 +29,10 @@ if(array_key_exists('is_logged', $_SESSION) === FALSE) { ?>
     <p>Welcome back, <strong><?= $username; ?></strong> ! | <a href="userLogout.php">Log out</a></p>
 <?php 
 } ?>
-    <p><a href="adminViewUser.php">View All User</a></p>
-    <!-- Controller -->
-    <h2>Orders</h2>
-
-
+    <ul>
+        <li><a href="adminViewLiveOrder.php">Live Order</a></li>
+        <li><a href="adminMenuManager.php">Menu Manager</a></li>
+        <li><a href="adminViewUser.php">View All User</a></li>
+    </ul>
 </body>
 </html>
