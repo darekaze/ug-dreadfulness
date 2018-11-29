@@ -18,8 +18,6 @@ if ($_POST && isset($_POST['submit'])) {
         "food_available"  => $_POST['food_available']
     );
 
-    print_r(array_values($new_menu));
-
     try {
         $sql = sprintf(
             "INSERT INTO %s (%s) values (%s)",

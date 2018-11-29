@@ -1,8 +1,7 @@
 <?php
-// Connects to your Database
+
 require_once '_route.php';
 
-// if not logged redirect to the sign in page
 if(array_key_exists('is_logged', $_SESSION) === FALSE && $_SESSION['level'] < 2) {
     header('Location: index.php');
     exit;
