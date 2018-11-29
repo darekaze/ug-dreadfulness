@@ -23,7 +23,7 @@ if(array_key_exists('is_logged', $_SESSION)) {
 <?php 
 if(array_key_exists('is_logged', $_SESSION) === FALSE) { ?>
     <p><a href="userLogin.php">Login</a> | <a href="userRegister.php">Register</a></p>
-    <p>Please login or register to perform your order</p>
+    <h3>Login/Register for more offer!!</h3>
 <?php
 } else { ?>
     <p>Welcome back, <strong><?= $_SESSION['username']; ?></strong> | <a href="userLogout.php">Log out</a></p>
