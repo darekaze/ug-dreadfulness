@@ -26,7 +26,7 @@ if ($_POST && isset($_POST['submit'])) {
     $num = $db->query('SELECT FOUND_ROWS()')->fetchColumn();
 
     if ($num > 0)
-        _log_die("Sorry, the username {$username} is already in use.");
+        _log_die("Sorry, the username '{$username}' is already in use. <a href=\"userRegister.php\">Go back</a>.</p>");
 
     try {
         $stmt = $db->prepare('INSERT INTO `users` (`username`, `password`, `level`) VALUES (:username, :password, 1)');
@@ -39,12 +39,8 @@ if ($_POST && isset($_POST['submit'])) {
     } catch (Exception $e) {
         error_log('Error: ' . $e->getMessage());
     }
-?>
-
-    <h1>Registered</h1>
-    <p>Thank you, you have registered - you may now <a href="userLogin.php">login</a>.</p>
-
-<?php
+    echo "<h1>Registered</h1>";
+    echo "<p>Thank you, you have registered - you may now <a href=\"userLogin.php\">login</a>.</p>";
 }
 
 else {
@@ -62,6 +58,10 @@ else {
 <form method="post">
     <table border="0">
         <tr><td colspan=2><h1>Sign up</h1></td></tr>
+        <tr><td colspan=2>
+            <a href="userLogin.php">Got an account?</a>
+        </td></tr>
+        <tr><td colspan=2></td></tr>
         <tr><td>Username:</td><td>
             <input type="text" name="username" maxlength="60">
         </td></tr>
@@ -81,4 +81,3 @@ else {
 
 <?php
 }
-?>

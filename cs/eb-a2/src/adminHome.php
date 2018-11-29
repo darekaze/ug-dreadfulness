@@ -3,8 +3,8 @@
 require_once '_route.php';
 
 // if not logged redirect to the sign in page
-if(array_key_exists('is_logged', $_SESSION) > 1) {
-    header('Location: userLogin.php');
+if(array_key_exists('is_logged', $_SESSION) === FALSE && $_SESSION['level'] < 2) {
+    header('Location: index.php');
     exit;
 }
 
@@ -14,11 +14,13 @@ $username = $_SESSION['username'];
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Food Station</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Food Station - Admin panel</title>
 </head>
 <body>
-    <h1>Food Station</h1>
+    <h1>Food Station - Admin panel</h1>
 <?php 
 if(array_key_exists('is_logged', $_SESSION) === FALSE) { ?>
     <p><a href="userLogin.php">Login</a></p>
@@ -27,7 +29,9 @@ if(array_key_exists('is_logged', $_SESSION) === FALSE) { ?>
     <p>Welcome back, <strong><?= $username; ?></strong> ! | <a href="userLogout.php">Log out</a></p>
 <?php 
 } ?>
-    <h2>Items</h2>
+    <p><a href="adminViewUser.php">View All User</a></p>
+    <!-- Controller -->
+    <h2>Orders</h2>
 
 
 </body>

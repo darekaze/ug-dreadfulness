@@ -36,14 +36,17 @@ if ($_POST && isset($_POST['submit'])) {
     // if login is ok then we add a cookie
     $_SESSION['is_logged'] = TRUE;
     $_SESSION['username']  = $username;
+    $_SESSION['level'] = $row['level'];
 
-    // redirect to home
-    header('Location: index.php');
+    // redirect
+    if ($_SESSION['level'] < 2) {
+        header('Location: index.php');
+    } else {
+        header('Location: adminHome.php');
+    }
     exit;
 }
 
-// if not logged in
-else {
 ?>
 
 <!DOCTYPE html>
@@ -58,20 +61,20 @@ else {
 <form method="post">
     <table border="0">
         <tr><td colspan=2><h1>Login</h1></td></tr>
+        <tr><td colspan=2>
+            Don't have an account? <a href="userRegister.php">Sign Up Now!</a>
+        </td></tr>
+        <tr><td colspan=2></td></tr>
         <tr><td>Username:</td><td>
             <input type="text" name="username" maxlength="60">
         </td></tr>
         <tr><td>Password:</td><td>
             <input type="password" name="password" maxlength="20">
         </td></tr>
-        <tr><td colspan="2" align="right">
+        <tr><td colspan="2" align="center">
             <input type="submit" name="submit" value="Login">
         </td></tr>
     </table>
 </form>
 </body>
 </html>
-
-<?php
-}
-?>
