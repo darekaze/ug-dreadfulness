@@ -1,0 +1,41 @@
+label {
+	display: block;
+	margin: 10px 0;
+}
+
+.but {
+	display: block;
+	margin: 10px 0;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+td,
+th {
+	padding: 5px;
+	border-bottom: 1px solid #aaa;
+}
+
+ul li {
+	padding: 5px;
+}
+
+img {
+	height: 200px;
+}
+
+.content {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	border: 1px solid black;
+	width: 600px;
+	padding: 10px;
+}
+
+.search input {
+	display: inline;
+}
